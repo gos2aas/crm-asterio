@@ -949,12 +949,27 @@
   // Seed admin on first run
   if (getUsers().length === 0) {
     saveUsers([{
-      cpf: '000.000.000-00',
+      cpf: '056.329.794-82',
       name: 'Asterio Silva',
       role: 'admin',
       perms: ['comercial','financeiro','rh','posvendas']
     }]);
   }
+
+  // Garantir que o admin do Asterio sempre exista na lista local
+  (function ensureAdmin() {
+    const users = getUsers();
+    const exists = users.find(u => u.cpf.replace(/\D/g,'') === '05632979482');
+    if (!exists) {
+      users.unshift({
+        cpf: '056.329.794-82',
+        name: 'Asterio Silva',
+        role: 'admin',
+        perms: ['comercial','financeiro','rh','posvendas']
+      });
+      saveUsers(users);
+    }
+  })();
 
   window.getUsers = getUsers;
   window.saveUsers = saveUsers;
