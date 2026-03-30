@@ -725,6 +725,8 @@
         <div class="user-menu" id="user-menu">
           <div class="user-menu-item" id="menu-admin-btn" onclick="openAdminPanel(event)" style="display:none">⚙️ Painel Admin</div>
           <div class="user-menu-divider" id="menu-admin-div" style="display:none"></div>
+          <div class="user-menu-item" onclick="openChangePwd(event)">🔑 Alterar Senha</div>
+          <div class="user-menu-divider"></div>
           <div class="user-menu-item danger" onclick="doLogout()">🚪 Sair</div>
         </div>
       </div>
@@ -901,13 +903,53 @@
       <div class="form-section-title">Usuários Cadastrados</div>
       <div id="users-table-wrap">
         <table class="user-table">
-          <thead><tr><th>Nome</th><th>CPF</th><th>Perfil</th><th>Módulos</th><th></th></tr></thead>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Perfil</th><th>Módulos</th><th>Senha</th><th></th></tr></thead>
           <tbody id="users-tbody"></tbody>
         </table>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('modal-admin')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ALTERAR SENHA (próprio usuário) -->
+<div class="modal-overlay" id="modal-changepwd" onclick="if(event.target===this)closeModal('modal-changepwd')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">🔑 Alterar Senha</div>
+      <button class="modal-close" onclick="closeModal('modal-changepwd')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Senha Atual</label><input type="password" id="cp-atual" placeholder="••••••••"></div>
+      <div class="form-group"><label>Nova Senha</label><input type="password" id="cp-nova" placeholder="Mínimo 6 caracteres"></div>
+      <div class="form-group"><label>Confirmar Nova Senha</label><input type="password" id="cp-confirma" placeholder="Repita a nova senha"></div>
+      <div class="login-error" id="cp-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-changepwd')">Cancelar</button>
+      <button class="btn-save" onclick="doChangePwd()">Salvar Nova Senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REDEFINIR SENHA (admin redefine para outro usuário) -->
+<div class="modal-overlay" id="modal-resetpwd" onclick="if(event.target===this)closeModal('modal-resetpwd')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">🔑 Redefinir Senha</div>
+      <button class="modal-close" onclick="closeModal('modal-resetpwd')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:4px">Redefinindo senha de: <strong id="reset-user-name" style="color:var(--text)">—</strong></p>
+      <div class="form-group"><label>Nova Senha</label><input type="password" id="rp-nova" placeholder="Mínimo 6 caracteres"></div>
+      <div class="form-group"><label>Confirmar Nova Senha</label><input type="password" id="rp-confirma" placeholder="Repita a nova senha"></div>
+      <div class="login-error" id="rp-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-resetpwd')">Cancelar</button>
+      <button class="btn-save" onclick="doAdminResetPwd()">Redefinir Senha</button>
     </div>
   </div>
 </div>
@@ -1089,6 +1131,71 @@
   };
 
   window._renderUsersTable = renderUsersTable;
+
+  // ── ALTERAR SENHA (próprio usuário) ───────────
+  window.openChangePwd = (e) => {
+    if(e) e.stopPropagation();
+    document.getElementById('user-menu').classList.remove('open');
+    ['cp-atual','cp-nova','cp-confirma'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('cp-error').style.display='none';
+    document.getElementById('modal-changepwd').classList.add('open');
+  };
+
+  window.doChangePwd = async () => {
+    const atual    = document.getElementById('cp-atual').value;
+    const nova     = document.getElementById('cp-nova').value;
+    const confirma = document.getElementById('cp-confirma').value;
+    const errEl    = document.getElementById('cp-error');
+    errEl.style.display='none';
+    if(!atual||!nova||!confirma){errEl.textContent='Preencha todos os campos.';errEl.style.display='block';return;}
+    if(nova.length<6){errEl.textContent='A nova senha deve ter pelo menos 6 caracteres.';errEl.style.display='block';return;}
+    if(nova!==confirma){errEl.textContent='As senhas não coincidem.';errEl.style.display='block';return;}
+    try {
+      const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js');
+      const user = auth.currentUser;
+      const cred = EmailAuthProvider.credential(user.email, atual);
+      await reauthenticateWithCredential(user, cred);
+      await updatePassword(user, nova);
+      closeModal('modal-changepwd');
+      alert('Senha alterada com sucesso!');
+    } catch(e) {
+      errEl.textContent = e.code==='auth/wrong-password'?'Senha atual incorreta.':'Erro ao alterar senha. Tente novamente.';
+      errEl.style.display='block';
+    }
+  };
+
+  // ── REDEFINIR SENHA (admin redefine de outro) ──
+  let resetTargetCPF = null;
+
+  window.adminResetPwd = (cpf, name) => {
+    resetTargetCPF = cpf;
+    document.getElementById('reset-user-name').textContent = name;
+    ['rp-nova','rp-confirma'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('rp-error').style.display='none';
+    document.getElementById('modal-resetpwd').classList.add('open');
+  };
+
+  window.doAdminResetPwd = async () => {
+    const nova     = document.getElementById('rp-nova').value;
+    const confirma = document.getElementById('rp-confirma').value;
+    const errEl    = document.getElementById('rp-error');
+    errEl.style.display='none';
+    if(!nova||!confirma){errEl.textContent='Preencha os dois campos.';errEl.style.display='block';return;}
+    if(nova.length<6){errEl.textContent='A senha deve ter pelo menos 6 caracteres.';errEl.style.display='block';return;}
+    if(nova!==confirma){errEl.textContent='As senhas não coincidem.';errEl.style.display='block';return;}
+    try {
+      // Criar novo usuário firebase OU usar Admin SDK — aqui usamos re-criação via sign in e update
+      // Como não temos Admin SDK no client, orientamos usar a senha via Firebase Console
+      // Alternativa: apagar e recriar o usuário com nova senha
+      const email = window.cpfToEmail(resetTargetCPF);
+      alert(`Para redefinir a senha de outro usuário sem o Admin SDK, acesse:\n\nFirebase Console → Authentication → Users\nLocalize: ${email}\nClique nos 3 pontos → "Redefinir senha"\n\nOu delete e recadastre o usuário com nova senha.`);
+      closeModal('modal-resetpwd');
+    } catch(e) {
+      errEl.textContent = 'Erro ao redefinir senha.';
+      errEl.style.display='block';
+    }
+  };
+
 
   function showApp(u) {
     document.getElementById('login-screen').style.display = 'none';
