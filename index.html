@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM — Asterio Silva Advocacia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1e2335;
+    --border: #2a3050;
+    --border2: #353d5c;
+    --text: #e8eaf0;
+    --text2: #8a91ab;
+    --text3: #5a6180;
+    --accent: #4f8ef7;
+    --accent2: #2563eb;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --purple: #a855f7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: auto;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+
+  .logo span { color: var(--accent); }
+
+  /* AREA TABS */
+  .area-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .area-tabs::-webkit-scrollbar { display: none; }
+
+  .area-tab {
+    border: none;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+    transition: opacity 0.15s, transform 0.1s;
+    opacity: 0.55;
+  }
+
+  .area-tab:hover { opacity: 0.8; }
+  .area-tab.active { opacity: 1; transform: scale(1.04); }
+
+  .tab-auxilio   { background: rgba(79,142,247,0.18); color: #7db4ff; border: 1px solid rgba(79,142,247,0.35); }
+  .tab-bancaria  { background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.35); }
+  .tab-previdenc { background: rgba(34,197,94,0.18);  color: #4ade80; border: 1px solid rgba(34,197,94,0.35); }
+  .tab-familia   { background: rgba(245,158,11,0.18); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+  .tab-consumidor{ background: rgba(239,68,68,0.18);  color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .stat-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .stat-pill strong { color: var(--text); font-weight: 600; }
+
+  .btn-add {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-add:hover { background: var(--accent2); }
+
+  /* BOARD */
+  .board-wrapper {
+    padding: 20px 24px 40px;
+    display: flex;
+    gap: 14px;
+    min-width: max-content;
+    align-items: flex-start;
+  }
+
+  /* COLUMN */
+  .column {
+    width: 272px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: visible;
+  }
+
+  .col-header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .col-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .col-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .col-title-text {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 1px 4px;
+    transition: background 0.1s;
+  }
+
+  .col-title-text:hover { background: var(--border); }
+
+  .col-title-input {
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 2px 6px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    width: 100%;
+    outline: none;
+  }
+
+  .col-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .col-count {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .col-action-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: color 0.1s, background 0.1s;
+  }
+
+  .col-action-btn:hover { color: var(--text); background: var(--border); }
+  .col-action-btn.del:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+
+  .col-body {
+    padding: 10px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .col-body.drag-over {
+    background: rgba(79,142,247,0.05);
+    border-radius: 0 0 14px 14px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px;
+    cursor: grab;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+
+  .card:hover {
+    border-color: var(--border2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .card.dragging { opacity: 0.35; cursor: grabbing; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 7px;
+  }
+
+  .card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .card-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 16px;
+    line-height: 1;
+    border-radius: 4px;
+    transition: color 0.1s, background 0.1s;
+    flex-shrink: 0;
+  }
+  .card-menu-btn:hover { color: var(--text); background: var(--border); }
+
+  .card-city {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 7px;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 7px;
+  }
+
+  .tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .tag-green   { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+  .tag-yellow  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+  .tag-red     { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .tag-blue    { background: rgba(79,142,247,0.12); color: #7db4ff; border: 1px solid rgba(79,142,247,0.2); }
+  .tag-purple  { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.2); }
+  .tag-gray    { background: rgba(100,116,139,0.12);color: #94a3b8; border: 1px solid rgba(100,116,139,0.2); }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 7px;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-date { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  .card-priority { width: 6px; height: 6px; border-radius: 50%; }
+  .priority-high { background: var(--red); }
+  .priority-mid  { background: var(--yellow); }
+  .priority-low  { background: var(--green); }
+
+  /* ADD COLUMN BTN */
+  .add-column-btn {
+    width: 48px;
+    height: 120px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    color: var(--text3);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, color 0.15s, width 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    align-self: flex-start;
+  }
+
+  .add-column-btn:hover { border-color: var(--accent); color: var(--accent); width: 56px; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 12px;
+    color: var(--text3);
+    font-size: 11px;
+    text-align: center;
+    gap: 5px;
+  }
+
+  /* COL ADD LEAD BTN */
+  .col-add-btn {
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 7px;
+    color: var(--text3);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin: 4px 10px 10px;
+    width: calc(100% - 20px);
+  }
+
+  .col-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.72);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  }
+
+  .modal-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 10;
+  }
+
+  .modal-title { font-size: 15px; font-weight: 700; }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: color 0.1s, background 0.1s;
+  }
+  .modal-close:hover { color: var(--text); background: var(--border); }
+
+  .modal-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text2);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  input, select, textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 11px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  select option { background: var(--surface2); }
+  textarea { resize: vertical; min-height: 72px; }
+
+  .form-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .checkbox-group { display: flex; flex-direction: column; gap: 5px; }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+  }
+
+  .checkbox-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+  .modal-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+  }
+
+  .btn-cancel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-cancel:hover { border-color: var(--border2); color: var(--text); }
+
+  .btn-save {
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .btn-save:hover { background: var(--accent2); }
+
+  /* DETAIL */
+  .detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-field:last-child { border-bottom: none; }
+  .detail-label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase; }
+  .detail-value { font-size: 13px; color: var(--text); }
+  .detail-value.empty { color: var(--text3); font-style: italic; }
+
+  .docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 4px; }
+  .doc-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+  .doc-check { color: var(--green); }
+  .doc-missing { color: var(--text3); }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">Asterio Silva <span>Advocacia</span></div>
+  </div>
+
+  <!-- AREA TABS -->
+  <div class="area-tabs" id="area-tabs">
+    <button class="area-tab tab-auxilio active" data-area="auxilio" onclick="switchArea('auxilio',this)">⚡ Auxílio-Acidente</button>
+    <button class="area-tab tab-bancaria" data-area="bancaria" onclick="switchArea('bancaria',this)">🏦 Bancária</button>
+    <button class="area-tab tab-previdenc" data-area="previdenc" onclick="switchArea('previdenc',this)">🛡️ Previdenciária</button>
+    <button class="area-tab tab-familia" data-area="familia" onclick="switchArea('familia',this)">👨‍👩‍👧 Família</button>
+    <button class="area-tab tab-consumidor" data-area="consumidor" onclick="switchArea('consumidor',this)">🛒 Consumidor</button>
+  </div>
+
+  <div class="header-right">
+    <div class="stat-pill">Total: <strong id="total-count">0</strong></div>
+    <div class="stat-pill">Convertidos: <strong id="converted-count">0</strong></div>
+    <button class="btn-add" onclick="openNewModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo Lead
+    </button>
+  </div>
+</header>
+
+<div class="board-wrapper" id="board"></div>
+
+<!-- MODAL FORM -->
+<div class="modal-overlay" id="modal-form">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-form-title">Novo Lead</div>
+      <button class="modal-close" onclick="closeModal('modal-form')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title">Dados Pessoais</div>
+      <div class="form-row">
+        <div class="form-group"><label>Nome Completo *</label><input type="text" id="f-name" placeholder="Ex: João da Silva"></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="f-cpf" placeholder="000.000.000-00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>WhatsApp *</label><input type="text" id="f-phone" placeholder="(84) 99999-9999"></div>
+        <div class="form-group"><label>Cidade / UF</label><input type="text" id="f-city" placeholder="Ex: Mossoró/RN"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Comprovante de Residência</label>
+          <select id="f-residencia">
+            <option value="">-- Selecionar --</option>
+            <option value="recebido">✅ Recebido</option>
+            <option value="pendente">⏳ Pendente</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-title">Dados do Acidente</div>
+      <div class="form-row">
+        <div class="form-group"><label>Data aprox. do acidente</label><input type="text" id="f-accident-date" placeholder="Ex: Janeiro/2022"></div>
+        <div class="form-group">
+          <label>Tipo de acidente</label>
+          <select id="f-accident-type">
+            <option value="">-- Selecionar --</option>
+            <option>Trabalho (acidente típico)</option>
+            <option>Trânsito</option>
+            <option>Doméstico</option>
+            <option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Vínculo CLT na época</label>
+          <select id="f-clt">
+            <option value="">-- Selecionar --</option>
+            <option value="ativo">✅ Sim — ativo</option>
+            <option value="desligado1ano">✅ Desligado até 1 ano antes</option>
+            <option value="nao">❌ Não</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sequela permanente</label>
+          <select id="f-sequela">
+            <option value="">-- Selecionar --</option>
+            <option value="sim">✅ Sim</option>
+            <option value="nao">❌ Não</option>
+            <option value="duvida">⚠️ Em verificação</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Perícia realizada</label>
+          <select id="f-pericia">
+            <option value="">-- Selecionar --</option>
+            <option value="sim">✅ Sim</option>
+            <option value="nao">❌ Não</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Alta médica</label>
+          <select id="f-alta">
+            <option value="">-- Selecionar --</option>
+            <option value="sim">✅ Sim</option>
+            <option value="nao">❌ Não — em tratamento</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-title">Documentos Recebidos</div>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" id="doc-rg"> RG / CNH</label>
+        <label class="checkbox-item"><input type="checkbox" id="doc-cpf"> CPF</label>
+        <label class="checkbox-item"><input type="checkbox" id="doc-ctps"> Carteira de Trabalho</label>
+        <label class="checkbox-item"><input type="checkbox" id="doc-comp-res"> Comprovante de Residência</label>
+        <label class="checkbox-item"><input type="checkbox" id="doc-bo"> Boletim de Ocorrência</label>
+        <label class="checkbox-item"><input type="checkbox" id="doc-cat"> CAT — Comunicação de Acidente de Trabalho</label>
+        <label class="checkbox-item"><input type="checkbox" id="doc-laudo"> Laudo / Atestado Médico</label>
+        <label class="checkbox-item"><input type="checkbox" id="doc-alta"> Alta Médica / Perícia INSS</label>
+      </div>
+
+      <div class="form-section-title">Gestão</div>
+      <div class="form-row">
+        <div class="form-group"><label>Coluna / Status</label><select id="f-column"></select></div>
+        <div class="form-group">
+          <label>Prioridade</label>
+          <select id="f-priority">
+            <option value="mid">Normal</option>
+            <option value="high">Alta</option>
+            <option value="low">Baixa</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>Observações internas</label>
+        <textarea id="f-notes" placeholder="Anotações da equipe, detalhes do caso, histórico..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-form')">Cancelar</button>
+      <button class="btn-save" onclick="saveLead()">Salvar Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="modal-overlay" id="modal-detail" onclick="handleOverlayClick(event,'modal-detail')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-name-title">—</div>
+      <button class="modal-close" onclick="closeModal('modal-detail')">×</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="deleteLead()" style="color:var(--red);border-color:rgba(239,68,68,0.3)">Excluir</button>
+      <button class="btn-cancel" onclick="closeModal('modal-detail')">Fechar</button>
+      <button class="btn-save" onclick="editFromDetail()">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FORM overlay click -->
+<script>
+document.getElementById('modal-form').addEventListener('click', function(e){
+  if(e.target === this) closeModal('modal-form');
+});
+</script>
+
+<script>
+  // ── STATE ──────────────────────────────────────────────
+  const STORAGE_KEY = 'crm_asa_v2';
+  let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+
+  const DEFAULT_COLS = [
+    { id: 'novo',        label: 'Novo Contato',      color: '#4f8ef7' },
+    { id: 'atendimento', label: 'Em Atendimento',     color: '#f59e0b' },
+    { id: 'docs',        label: 'Pendente de Docs',   color: '#a855f7' },
+    { id: 'analise',     label: 'Em Análise',         color: '#38bdf8' },
+    { id: 'followup',    label: 'Follow-up',          color: '#fb923c' },
+    { id: 'convertido',  label: 'Convertido ✓',       color: '#22c55e' },
+    { id: 'descartado',  label: 'Descartado',         color: '#64748b' },
+  ];
+
+  const AREAS = ['auxilio','bancaria','previdenc','familia','consumidor'];
+
+  if (!state) {
+    state = { currentArea: 'auxilio', areas: {} };
+    AREAS.forEach(a => { state.areas[a] = { cols: JSON.parse(JSON.stringify(DEFAULT_COLS)), leads: [] }; });
+    // seed
+    state.areas.auxilio.leads = [
+      { id:'1', name:'Maria Aparecida Santos', cpf:'012.345.678-90', phone:'(84) 98765-4321', city:'Mossoró/RN', accidentDate:'Março/2022', accidentType:'Trabalho (acidente típico)', clt:'ativo', sequela:'sim', pericia:'sim', alta:'sim', residencia:'recebido', column:'docs', priority:'high', notes:'Acidente com prensa. Perdeu parcialmente o movimento do dedo indicador direito.', docs:{'doc-rg':true,'doc-cpf':true,'doc-ctps':true,'doc-comp-res':true,'doc-bo':false,'doc-cat':true,'doc-laudo':false,'doc-alta':false}, createdAt: new Date().toISOString() },
+      { id:'2', name:'Francisco Alves Lima',   cpf:'987.654.321-00', phone:'(84) 99111-2233', city:'Pau dos Ferros/RN', accidentDate:'Julho/2023', accidentType:'Trânsito', clt:'desligado1ano', sequela:'sim', pericia:'nao', alta:'nao', residencia:'pendente', column:'atendimento', priority:'mid', notes:'Acidente de moto a caminho do trabalho.', docs:{'doc-rg':true,'doc-cpf':true,'doc-ctps':false,'doc-comp-res':false,'doc-bo':true,'doc-cat':false,'doc-laudo':true,'doc-alta':false}, createdAt: new Date().toISOString() },
+      { id:'3', name:'José Pereira da Costa',  cpf:'', phone:'(84) 98000-5544', city:'Mossoró/RN', accidentDate:'', accidentType:'', clt:'', sequela:'', pericia:'', alta:'', residencia:'', column:'novo', priority:'low', notes:'', docs:{}, createdAt: new Date().toISOString() }
+    ];
+  }
+
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function areaData() { return state.areas[state.currentArea]; }
+
+  // ── AREA SWITCH ────────────────────────────────────────
+  function switchArea(area, btn) {
+    state.currentArea = area;
+    save();
+    document.querySelectorAll('.area-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  // ── DRAG ───────────────────────────────────────────────
+  let draggedId = null;
+
+  function dragStart(id) {
+    draggedId = id;
+    setTimeout(() => { const el = document.getElementById('card-'+id); if(el) el.classList.add('dragging'); }, 0);
+  }
+
+  function dragEnd(id) {
+    const el = document.getElementById('card-'+id);
+    if(el) el.classList.remove('dragging');
+    document.querySelectorAll('.col-body').forEach(b => b.classList.remove('drag-over'));
+  }
+
+  function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+
+  function drop(e, colId) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    if(!draggedId) return;
+    const lead = areaData().leads.find(l => l.id === draggedId);
+    if(lead) { lead.column = colId; save(); render(); }
+    draggedId = null;
+  }
+
+  // ── BUILD CARD ─────────────────────────────────────────
+  const DOC_KEYS = ['doc-rg','doc-cpf','doc-ctps','doc-comp-res','doc-bo','doc-cat','doc-laudo','doc-alta'];
+  const DOC_LABELS = { 'doc-rg':'RG / CNH','doc-cpf':'CPF','doc-ctps':'Carteira de Trabalho','doc-comp-res':'Comp. Residência','doc-bo':'Boletim de Ocorrência','doc-cat':'CAT','doc-laudo':'Laudo / Atestado','doc-alta':'Alta / Perícia INSS' };
+
+  function formatDate(iso) {
+    if(!iso) return '—';
+    return new Date(iso).toLocaleDateString('pt-BR');
+  }
+
+  function buildCard(lead) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.id = 'card-' + lead.id;
+    el.draggable = true;
+    el.ondragstart = () => dragStart(lead.id);
+    el.ondragend   = () => dragEnd(lead.id);
+
+    const docsReceived = DOC_KEYS.filter(k => lead.docs && lead.docs[k]).length;
+    let tagsHtml = '';
+    if (lead.clt === 'ativo')          tagsHtml += '<span class="tag tag-green">CLT ✓</span>';
+    if (lead.clt === 'desligado1ano')  tagsHtml += '<span class="tag tag-yellow">Desligado &lt;1a</span>';
+    if (lead.clt === 'nao')            tagsHtml += '<span class="tag tag-red">Sem CLT</span>';
+    if (lead.sequela === 'sim')        tagsHtml += '<span class="tag tag-blue">Sequela ✓</span>';
+    if (lead.sequela === 'duvida')     tagsHtml += '<span class="tag tag-yellow">Sequela?</span>';
+    if (lead.pericia === 'sim')        tagsHtml += '<span class="tag tag-purple">Perícia ✓</span>';
+    if (docsReceived > 0)              tagsHtml += `<span class="tag tag-gray">Docs ${docsReceived}/${DOC_KEYS.length}</span>`;
+
+    el.innerHTML = `
+      <div class="card-top">
+        <div class="card-name">${lead.name}</div>
+        <button class="card-menu-btn" onclick="openDetail(event,'${lead.id}')">⋯</button>
+      </div>
+      ${lead.city ? `<div class="card-city">📍 ${lead.city}</div>` : ''}
+      ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
+      <div class="card-footer">
+        <span class="card-date">${formatDate(lead.createdAt)}</span>
+        <span class="card-priority priority-${lead.priority||'mid'}"></span>
+      </div>`;
+    return el;
+  }
+
+  // ── RENDER BOARD ───────────────────────────────────────
+  function render() {
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    const { cols, leads } = areaData();
+
+    cols.forEach(col => {
+      const colLeads = leads.filter(l => l.column === col.id);
+
+      const colEl = document.createElement('div');
+      colEl.className = 'column';
+      colEl.id = 'col-' + col.id;
+
+      colEl.innerHTML = `
+        <div class="col-header">
+          <div class="col-title-wrap">
+            <div class="col-dot" style="background:${col.color}"></div>
+            <div class="col-title-text" id="title-text-${col.id}" ondblclick="startRenameCol('${col.id}')" title="Duplo clique para renomear">${col.label}</div>
+          </div>
+          <div class="col-actions">
+            <span class="col-count" id="count-${col.id}">${colLeads.length}</span>
+            <button class="col-action-btn del" onclick="deleteCol('${col.id}')" title="Excluir coluna">×</button>
+          </div>
+        </div>
+        <div class="col-body" id="body-${col.id}" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event,'${col.id}')"></div>`;
+
+      board.appendChild(colEl);
+
+      const body = document.getElementById('body-' + col.id);
+      if (colLeads.length === 0) {
+        body.innerHTML = `<div class="empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="12" x2="15" y2="12"/></svg>Nenhum lead</div>`;
+      } else {
+        colLeads.forEach(l => body.appendChild(buildCard(l)));
+      }
+
+      // add lead btn inside column
+      const addBtn = document.createElement('button');
+      addBtn.className = 'col-add-btn';
+      addBtn.textContent = '+ Adicionar lead';
+      addBtn.onclick = () => { openNewModal(); document.getElementById('f-column').value = col.id; };
+      colEl.appendChild(addBtn);
+    });
+
+    // add column button
+    const addColBtn = document.createElement('button');
+    addColBtn.className = 'add-column-btn';
+    addColBtn.title = 'Nova coluna';
+    addColBtn.innerHTML = '+';
+    addColBtn.onclick = addColumn;
+    board.appendChild(addColBtn);
+
+    // update stats
+    document.getElementById('total-count').textContent = leads.length;
+    document.getElementById('converted-count').textContent = leads.filter(l => l.column === 'convertido').length;
+
+    // populate column select in form
+    const sel = document.getElementById('f-column');
+    sel.innerHTML = cols.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+  }
+
+  function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+  // ── RENAME COLUMN ──────────────────────────────────────
+  function startRenameCol(colId) {
+    const textEl = document.getElementById('title-text-' + colId);
+    const col = areaData().cols.find(c => c.id === colId);
+    if (!col) return;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'col-title-input';
+    input.value = col.label;
+    textEl.replaceWith(input);
+    input.focus();
+    input.select();
+    const finish = () => {
+      const val = input.value.trim() || col.label;
+      col.label = val;
+      save();
+      render();
+    };
+    input.onblur = finish;
+    input.onkeydown = e => { if(e.key === 'Enter') finish(); if(e.key === 'Escape') render(); };
+  }
+
+  // ── ADD / DELETE COLUMN ────────────────────────────────
+  function addColumn() {
+    const label = prompt('Nome da nova coluna:');
+    if (!label || !label.trim()) return;
+    const colors = ['#4f8ef7','#f59e0b','#a855f7','#22c55e','#ef4444','#38bdf8','#fb923c','#ec4899'];
+    const used = areaData().cols.length;
+    const id = 'col_' + Date.now();
+    areaData().cols.push({ id, label: label.trim(), color: colors[used % colors.length] });
+    save();
+    render();
+  }
+
+  function deleteCol(colId) {
+    const col = areaData().cols.find(c => c.id === colId);
+    if (!col) return;
+    const count = areaData().leads.filter(l => l.column === colId).length;
+    const msg = count > 0
+      ? `A coluna "${col.label}" tem ${count} lead(s). Excluir mesmo assim? Os leads serão movidos para "Novo Contato".`
+      : `Excluir a coluna "${col.label}"?`;
+    if (!confirm(msg)) return;
+    areaData().leads.forEach(l => { if(l.column === colId) l.column = areaData().cols[0]?.id || 'novo'; });
+    areaData().cols = areaData().cols.filter(c => c.id !== colId);
+    save();
+    render();
+  }
+
+  // ── MODAL FORM ─────────────────────────────────────────
+  let editingId = null;
+  let detailId  = null;
+
+  function openNewModal() {
+    editingId = null;
+    document.getElementById('modal-form-title').textContent = 'Novo Lead';
+    clearForm();
+    document.getElementById('modal-form').classList.add('open');
+  }
+
+  function clearForm() {
+    ['f-name','f-cpf','f-phone','f-city','f-accident-date','f-notes'].forEach(id => document.getElementById(id).value = '');
+    ['f-accident-type','f-clt','f-sequela','f-pericia','f-alta','f-residencia'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-priority').value = 'mid';
+    const firstColId = areaData().cols[0]?.id || '';
+    document.getElementById('f-column').value = firstColId;
+    DOC_KEYS.forEach(k => { document.getElementById(k).checked = false; });
+  }
+
+  function fillForm(lead) {
+    document.getElementById('f-name').value = lead.name || '';
+    document.getElementById('f-cpf').value = lead.cpf || '';
+    document.getElementById('f-phone').value = lead.phone || '';
+    document.getElementById('f-city').value = lead.city || '';
+    document.getElementById('f-accident-date').value = lead.accidentDate || '';
+    document.getElementById('f-accident-type').value = lead.accidentType || '';
+    document.getElementById('f-clt').value = lead.clt || '';
+    document.getElementById('f-sequela').value = lead.sequela || '';
+    document.getElementById('f-pericia').value = lead.pericia || '';
+    document.getElementById('f-alta').value = lead.alta || '';
+    document.getElementById('f-residencia').value = lead.residencia || '';
+    document.getElementById('f-column').value = lead.column || areaData().cols[0]?.id;
+    document.getElementById('f-priority').value = lead.priority || 'mid';
+    document.getElementById('f-notes').value = lead.notes || '';
+    DOC_KEYS.forEach(k => { document.getElementById(k).checked = !!(lead.docs && lead.docs[k]); });
+  }
+
+  function saveLead() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { alert('Nome é obrigatório.'); return; }
+    const docs = {};
+    DOC_KEYS.forEach(k => { docs[k] = document.getElementById(k).checked; });
+    const data = {
+      name,
+      cpf: document.getElementById('f-cpf').value.trim(),
+      phone: document.getElementById('f-phone').value.trim(),
+      city: document.getElementById('f-city').value.trim(),
+      accidentDate: document.getElementById('f-accident-date').value.trim(),
+      accidentType: document.getElementById('f-accident-type').value,
+      clt: document.getElementById('f-clt').value,
+      sequela: document.getElementById('f-sequela').value,
+      pericia: document.getElementById('f-pericia').value,
+      alta: document.getElementById('f-alta').value,
+      residencia: document.getElementById('f-residencia').value,
+      column: document.getElementById('f-column').value,
+      priority: document.getElementById('f-priority').value,
+      notes: document.getElementById('f-notes').value.trim(),
+      docs,
+      area: state.currentArea
+    };
+    if (editingId) {
+      const idx = areaData().leads.findIndex(l => l.id === editingId);
+      if (idx !== -1) areaData().leads[idx] = { ...areaData().leads[idx], ...data };
+    } else {
+      data.id = Date.now().toString();
+      data.createdAt = new Date().toISOString();
+      areaData().leads.unshift(data);
+    }
+    save(); render();
+    closeModal('modal-form');
+  }
+
+  // ── DETAIL ─────────────────────────────────────────────
+  function openDetail(e, id) {
+    e.stopPropagation();
+    detailId = id;
+    const lead = areaData().leads.find(l => l.id === id);
+    if (!lead) return;
+    document.getElementById('detail-name-title').textContent = lead.name;
+    const docsHtml = DOC_KEYS.map(k => {
+      const ok = lead.docs && lead.docs[k];
+      return `<div class="doc-item"><span class="${ok?'doc-check':'doc-missing'}">${ok?'✅':'○'}</span>${DOC_LABELS[k]}</div>`;
+    }).join('');
+    const yesno = v => v==='sim'?'✅ Sim':v==='nao'?'❌ Não':v||'—';
+    const cltMap = { ativo:'✅ CLT ativo na época', desligado1ano:'✅ Desligado há menos de 1 ano', nao:'❌ Não tinha vínculo' };
+    document.getElementById('detail-body').innerHTML = `
+      <div class="detail-field"><div class="detail-label">WhatsApp</div><div class="detail-value">${lead.phone||'—'}</div></div>
+      <div class="detail-field"><div class="detail-label">CPF</div><div class="detail-value">${lead.cpf||'—'}</div></div>
+      <div class="detail-field"><div class="detail-label">Cidade</div><div class="detail-value">${lead.city||'—'}</div></div>
+      <div class="detail-field"><div class="detail-label">Data do acidente</div><div class="detail-value">${lead.accidentDate||'—'}</div></div>
+      <div class="detail-field"><div class="detail-label">Tipo de acidente</div><div class="detail-value">${lead.accidentType||'—'}</div></div>
+      <div class="detail-field"><div class="detail-label">Vínculo CLT</div><div class="detail-value">${cltMap[lead.clt]||'—'}</div></div>
+      <div class="detail-field"><div class="detail-label">Sequela permanente</div><div class="detail-value">${yesno(lead.sequela)}</div></div>
+      <div class="detail-field"><div class="detail-label">Perícia realizada</div><div class="detail-value">${yesno(lead.pericia)}</div></div>
+      <div class="detail-field"><div class="detail-label">Alta médica</div><div class="detail-value">${yesno(lead.alta)}</div></div>
+      <div class="detail-field"><div class="detail-label">Comp. de Residência</div><div class="detail-value">${lead.residencia==='recebido'?'✅ Recebido':lead.residencia==='pendente'?'⏳ Pendente':'—'}</div></div>
+      <div class="detail-field"><div class="detail-label">Documentos</div><div class="docs-grid">${docsHtml}</div></div>
+      <div class="detail-field"><div class="detail-label">Observações</div><div class="detail-value ${!lead.notes?'empty':''}">${lead.notes||'Sem observações'}</div></div>
+      <div class="detail-field"><div class="detail-label">Entrada no CRM</div><div class="detail-value">${formatDate(lead.createdAt)}</div></div>`;
+    document.getElementById('modal-detail').classList.add('open');
+  }
+
+  function editFromDetail() {
+    closeModal('modal-detail');
+    const lead = areaData().leads.find(l => l.id === detailId);
+    if(!lead) return;
+    editingId = detailId;
+    document.getElementById('modal-form-title').textContent = 'Editar Lead';
+    fillForm(lead);
+    document.getElementById('modal-form').classList.add('open');
+  }
+
+  function deleteLead() {
+    if(!confirm('Excluir este lead permanentemente?')) return;
+    areaData().leads = areaData().leads.filter(l => l.id !== detailId);
+    save(); render();
+    closeModal('modal-detail');
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function handleOverlayClick(e, modalId) { if(e.target === e.currentTarget) closeModal(modalId); }
+
+  // ESC to close modals
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') {
+      closeModal('modal-detail');
+      closeModal('modal-form');
+    }
+  });
+
+  // ── INIT ───────────────────────────────────────────────
+  render();
+</script>
+</body>
+</html>
