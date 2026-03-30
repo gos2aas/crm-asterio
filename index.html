@@ -1077,7 +1077,7 @@
           ${u.role==='admin' ? '<span style="font-size:11px;color:var(--text3)">Acesso total</span>' :
             PERMS.map(p => `<button class="perm-toggle ${u.perms.includes(p)?'on':''}" onclick="togglePerm('${u.cpf}','${p}')">${PERM_LABELS[p]}</button>`).join('')}
         </td>
-        <td>${u.cpf!=='000.000.000-00'?`<button class="btn-danger" onclick="deleteUser('${u.cpf}')">Remover</button>`:'—'}</td>
+        <td>${['05632979482','00000000000'].includes(u.cpf.replace(/\D/g,''))?'—':`<button class="btn-danger" onclick="deleteUser('${u.cpf}')">Remover</button>`}</td>
       </tr>`).join('');
   }
 
