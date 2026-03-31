@@ -1341,7 +1341,7 @@
     e.preventDefault(); e.currentTarget.classList.remove('drag-over');
     if(!draggedId) return;
     const lead = areaData(appState).leads.find(l=>l.id===draggedId);
-    if(lead){ lead.column=colId; saveState(appState); render(); }
+    if(lead){ lead.column=colId; saveState(appState); render(); if(window.syncLeadToSheets) window.syncLeadToSheets(lead); }
     draggedId=null;
   }
   window.dropCard = dropCard;
@@ -1444,6 +1444,11 @@
       areaData(appState).leads.unshift(data);
     }
     saveState(appState); render(); closeModal('modal-form');
+    // Sync para Google Sheets em background
+    const savedLead = editingId
+      ? areaData(appState).leads.find(l => l.id === editingId)
+      : areaData(appState).leads[0];
+    if (savedLead && window.syncLeadToSheets) window.syncLeadToSheets(savedLead);
   }
   window.saveLead = saveLead;
 
@@ -1505,6 +1510,105 @@
   document.addEventListener('keydown', e => {
     if(e.key==='Escape'){ closeModal('modal-detail'); closeModal('modal-form'); closeModal('modal-admin'); }
   });
+
+  // ── GOOGLE SHEETS SYNC via Apps Script ────────
+  // IMPORTANTE: Cole a URL do seu Apps Script abaixo após criar o webhook
+  const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzdHWun9MV-1z_mH1D8xPVah0oy3mDGycTEQHK0kgclj_uN_FnGP7O0vwdRmayMDUs0/exec';
+  const SHEETS_CONFIG = {
+    apiKey: 'AIzaSyDrH5ruxK2juSyxoPZoe81PoOx-HPQCbrs',
+    spreadsheetId: '1dXr-dbkgM40UdPYKrVd6fjYJIKGlNwkSTA9FenwFrdA',
+    sheetName: 'Leads'
+  };
+
+  const SHEET_HEADERS = [
+    'ID','Nome','CPF','WhatsApp','Cidade','Data Acidente','Tipo Acidente',
+    'Vínculo CLT','Sequela','Perícia','Alta Médica','Comp. Residência',
+    'Área','Status/Coluna','Prioridade','Observações',
+    'Doc RG','Doc CPF','Doc CTPS','Doc Comp.Res','Doc BO','Doc CAT','Doc Laudo','Doc Alta',
+    'Data Cadastro','Responsável'
+  ];
+
+  async function sheetsRequest(method, range, values) {
+    const base = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_CONFIG.spreadsheetId}`;
+    const key = `?key=${SHEETS_CONFIG.apiKey}`;
+    if (method === 'GET') {
+      const r = await fetch(`${base}/values/${range}${key}`);
+      return r.json();
+    }
+    if (method === 'APPEND') {
+      const r = await fetch(`${base}/values/${range}:append?valueInputOption=RAW&key=${SHEETS_CONFIG.apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values })
+      });
+      return r.json();
+    }
+    if (method === 'UPDATE') {
+      const r = await fetch(`${base}/values/${range}?valueInputOption=RAW&key=${SHEETS_CONFIG.apiKey}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values })
+      });
+      return r.json();
+    }
+  }
+
+  async function ensureSheetHeaders() {
+    try {
+      const res = await sheetsRequest('GET', `${SHEETS_CONFIG.sheetName}!A1:Z1`);
+      if (!res.values || res.values.length === 0) {
+        await sheetsRequest('APPEND', `${SHEETS_CONFIG.sheetName}!A1`, [SHEET_HEADERS]);
+      }
+    } catch(e) { console.warn('Sheets header check failed:', e); }
+  }
+
+  function leadToRow(lead) {
+    const docs = lead.docs || {};
+    const cltMap = { ativo: 'CLT ativo', desligado1ano: 'Desligado <1 ano', nao: 'Sem vínculo' };
+    return [
+      lead.id || '',
+      lead.name || '',
+      lead.cpf || '',
+      lead.phone || '',
+      lead.city || '',
+      lead.accidentDate || '',
+      lead.accidentType || '',
+      cltMap[lead.clt] || lead.clt || '',
+      lead.sequela || '',
+      lead.pericia || '',
+      lead.alta || '',
+      lead.residencia || '',
+      lead.area || appState?.currentArea || '',
+      lead.column || '',
+      lead.priority || '',
+      lead.notes || '',
+      docs['doc-rg'] ? 'Sim' : 'Não',
+      docs['doc-cpf-d'] ? 'Sim' : 'Não',
+      docs['doc-ctps'] ? 'Sim' : 'Não',
+      docs['doc-comp-res'] ? 'Sim' : 'Não',
+      docs['doc-bo'] ? 'Sim' : 'Não',
+      docs['doc-cat'] ? 'Sim' : 'Não',
+      docs['doc-laudo'] ? 'Sim' : 'Não',
+      docs['doc-alta-d'] ? 'Sim' : 'Não',
+      lead.createdAt ? new Date(lead.createdAt).toLocaleString('pt-BR') : '',
+      window.currentUser?.name || ''
+    ];
+  }
+
+  async function syncLeadToSheets(lead) {
+    if (!SHEETS_WEBHOOK_URL || SHEETS_WEBHOOK_URL === 'COLE_A_URL_DO_APPS_SCRIPT_AQUI') return;
+    try {
+      await fetch(SHEETS_WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'upsert', data: leadToRow(lead), id: lead.id })
+      });
+    } catch(e) { console.warn('Sheets sync failed:', e); }
+  }
+
+  window.syncLeadToSheets = syncLeadToSheets;
+
 </script>
 </body>
 </html>
