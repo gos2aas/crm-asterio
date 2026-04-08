@@ -715,6 +715,13 @@
       <button class="area-tab tab-familia" data-area="familia" onclick="switchArea('familia',this)">👨‍👩‍👧 Família</button>
       <button class="area-tab tab-consumidor" data-area="consumidor" onclick="switchArea('consumidor',this)">🛒 Consumidor</button>
     </div>
+
+    <!-- BOTÃO LEADS WHATSAPP -->
+    <button class="btn-wa" id="btn-wa-leads" onclick="openWALeads()" style="position:relative;background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.3);color:#25d366;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;white-space:nowrap">
+      📱 Leads WA
+      <span id="wa-badge" style="display:none;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:10px;align-items:center;justify-content:center;font-weight:700">0</span>
+    </button>
+
     <div class="header-right">
       <div class="stat-pill">Total: <strong id="total-count">0</strong></div>
       <div class="stat-pill">Convertidos: <strong id="converted-count">0</strong></div>
@@ -954,11 +961,29 @@
   </div>
 </div>
 
-<!-- Firebase -->
+<!-- MODAL LEADS WHATSAPP -->
+<div class="modal-overlay" id="modal-wa-leads" onclick="if(event.target===this)closeModal('modal-wa-leads')">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">📱 Leads do WhatsApp</div>
+      <button class="modal-close" onclick="closeModal('modal-wa-leads')">×</button>
+    </div>
+    <div class="modal-body" id="wa-leads-body">
+      <p style="color:var(--text3);font-size:13px">Nenhum lead pendente.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-wa-leads')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase (Auth + Firestore) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot, query, where, doc, updateDoc }
+    from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDSy_052ix_ZxIsS6f7LoNM_Z5ZsH9QVXw",
@@ -969,20 +994,22 @@
     appId: "1:1046218447199:web:635212e1d4d9f8eec27eea"
   };
 
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  const app       = initializeApp(firebaseConfig);
+  const auth      = getAuth(app);
+  const firestore = getFirestore(app);
 
-  window._auth = auth;
-  window._signIn  = signInWithEmailAndPassword;
-  window._signOut = signOut;
+  window._auth      = auth;
+  window._firestore = firestore;
+  window._signIn    = signInWithEmailAndPassword;
+  window._signOut   = signOut;
   window._createUser = createUserWithEmailAndPassword;
-  window._onAuth = onAuthStateChanged;
+  window._onAuth    = onAuthStateChanged;
 
   // CPF → fake email helper
   window.cpfToEmail = cpf => cpf.replace(/\D/g,'') + '@crm.asterio';
 
   // ── LOCAL USER DB (localStorage, admin only) ──
-  const USERS_KEY = 'crm_asa_users';
+  const USERS_KEY   = 'crm_asa_users';
   const STORAGE_KEY = 'crm_asa_v3';
 
   function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); }
@@ -1013,8 +1040,8 @@
     }
   })();
 
-  window.getUsers = getUsers;
-  window.saveUsers = saveUsers;
+  window.getUsers   = getUsers;
+  window.saveUsers  = saveUsers;
   window.STORAGE_KEY = STORAGE_KEY;
 
   // ── AUTH STATE ────────────────────────────────
@@ -1071,14 +1098,10 @@
     if (senha.length < 6) { alert('Senha mínima de 6 caracteres.'); return; }
     try {
       await window._createUser(auth, window.cpfToEmail(cpf), senha);
-      // Re-sign in as admin
-      const adminCPF = window.currentUser.cpf;
-      const adminPwd = document.getElementById('nu-senha').dataset.adminpwd || prompt('Confirme sua senha de administrador:');
       const users = getUsers();
       users.push({ cpf, name, role, perms });
       saveUsers(users);
       renderUsersTable();
-      // clear form
       ['nu-name','nu-cpf','nu-senha'].forEach(id => document.getElementById(id).value='');
       ['comercial','financeiro','rh','posvendas'].forEach(p => document.getElementById('np-'+p).checked=false);
       alert(`Usuário ${name} criado com sucesso!`);
@@ -1184,9 +1207,6 @@
     if(nova.length<6){errEl.textContent='A senha deve ter pelo menos 6 caracteres.';errEl.style.display='block';return;}
     if(nova!==confirma){errEl.textContent='As senhas não coincidem.';errEl.style.display='block';return;}
     try {
-      // Criar novo usuário firebase OU usar Admin SDK — aqui usamos re-criação via sign in e update
-      // Como não temos Admin SDK no client, orientamos usar a senha via Firebase Console
-      // Alternativa: apagar e recriar o usuário com nova senha
       const email = window.cpfToEmail(resetTargetCPF);
       alert(`Para redefinir a senha de outro usuário sem o Admin SDK, acesse:\n\nFirebase Console → Authentication → Users\nLocalize: ${email}\nClique nos 3 pontos → "Redefinir senha"\n\nOu delete e recadastre o usuário com nova senha.`);
       closeModal('modal-resetpwd');
@@ -1196,7 +1216,38 @@
     }
   };
 
+  // ── LISTEN WHATSAPP LEADS (Firestore) ─────────
+  function listenWhatsappLeads() {
+    try {
+      const q = query(
+        collection(firestore, 'whatsapp_leads'),
+        where('status', '==', 'novo')
+      );
+      onSnapshot(q, (snapshot) => {
+        const leads = [];
+        snapshot.forEach(docSnap => {
+          leads.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        window.waLeads = leads;
+        updateWABadge(leads.length);
+      }, (err) => {
+        console.warn('Firestore whatsapp_leads:', err.message);
+      });
+    } catch(e) {
+      console.warn('listenWhatsappLeads error:', e.message);
+    }
+  }
 
+  // ── IMPORTAR LEAD WA (marcar como importado) ──
+  window.importarLeadWA = async (id) => {
+    try {
+      await updateDoc(doc(firestore, 'whatsapp_leads', id), { status: 'importado' });
+    } catch(e) {
+      console.warn('importarLeadWA error:', e.message);
+    }
+  };
+
+  // ── SHOW APP ──────────────────────────────────
   function showApp(u) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'block';
@@ -1209,6 +1260,7 @@
       document.getElementById('menu-admin-div').style.display = 'block';
     }
     window.initBoard();
+    listenWhatsappLeads();
   }
 </script>
 
@@ -1341,7 +1393,7 @@
     e.preventDefault(); e.currentTarget.classList.remove('drag-over');
     if(!draggedId) return;
     const lead = areaData(appState).leads.find(l=>l.id===draggedId);
-    if(lead){ lead.column=colId; saveState(appState); render(); if(window.syncLeadToSheets) window.syncLeadToSheets(lead); }
+    if(lead){ lead.column=colId; saveState(appState); render(); }
     draggedId=null;
   }
   window.dropCard = dropCard;
@@ -1444,11 +1496,6 @@
       areaData(appState).leads.unshift(data);
     }
     saveState(appState); render(); closeModal('modal-form');
-    // Sync para Google Sheets em background
-    const savedLead = editingId
-      ? areaData(appState).leads.find(l => l.id === editingId)
-      : areaData(appState).leads[0];
-    if (savedLead && window.syncLeadToSheets) window.syncLeadToSheets(savedLead);
   }
   window.saveLead = saveLead;
 
@@ -1508,107 +1555,74 @@
   });
 
   document.addEventListener('keydown', e => {
-    if(e.key==='Escape'){ closeModal('modal-detail'); closeModal('modal-form'); closeModal('modal-admin'); }
+    if(e.key==='Escape'){ closeModal('modal-detail'); closeModal('modal-form'); closeModal('modal-admin'); closeModal('modal-wa-leads'); }
   });
 
-  // ── GOOGLE SHEETS SYNC via Apps Script ────────
-  // IMPORTANTE: Cole a URL do seu Apps Script abaixo após criar o webhook
-  const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzdHWun9MV-1z_mH1D8xPVah0oy3mDGycTEQHK0kgclj_uN_FnGP7O0vwdRmayMDUs0/exec';
-  const SHEETS_CONFIG = {
-    apiKey: 'AIzaSyDrH5ruxK2juSyxoPZoe81PoOx-HPQCbrs',
-    spreadsheetId: '1dXr-dbkgM40UdPYKrVd6fjYJIKGlNwkSTA9FenwFrdA',
-    sheetName: 'Leads'
-  };
+  // ── WHATSAPP LEADS ────────────────────────────
+  window.waLeads = [];
 
-  const SHEET_HEADERS = [
-    'ID','Nome','CPF','WhatsApp','Cidade','Data Acidente','Tipo Acidente',
-    'Vínculo CLT','Sequela','Perícia','Alta Médica','Comp. Residência',
-    'Área','Status/Coluna','Prioridade','Observações',
-    'Doc RG','Doc CPF','Doc CTPS','Doc Comp.Res','Doc BO','Doc CAT','Doc Laudo','Doc Alta',
-    'Data Cadastro','Responsável'
-  ];
-
-  async function sheetsRequest(method, range, values) {
-    const base = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_CONFIG.spreadsheetId}`;
-    const key = `?key=${SHEETS_CONFIG.apiKey}`;
-    if (method === 'GET') {
-      const r = await fetch(`${base}/values/${range}${key}`);
-      return r.json();
-    }
-    if (method === 'APPEND') {
-      const r = await fetch(`${base}/values/${range}:append?valueInputOption=RAW&key=${SHEETS_CONFIG.apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ values })
-      });
-      return r.json();
-    }
-    if (method === 'UPDATE') {
-      const r = await fetch(`${base}/values/${range}?valueInputOption=RAW&key=${SHEETS_CONFIG.apiKey}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ values })
-      });
-      return r.json();
+  function updateWABadge(count) {
+    const badge = document.getElementById('wa-badge');
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'inline-flex' : 'none';
     }
   }
+  window.updateWABadge = updateWABadge;
 
-  async function ensureSheetHeaders() {
-    try {
-      const res = await sheetsRequest('GET', `${SHEETS_CONFIG.sheetName}!A1:Z1`);
-      if (!res.values || res.values.length === 0) {
-        await sheetsRequest('APPEND', `${SHEETS_CONFIG.sheetName}!A1`, [SHEET_HEADERS]);
-      }
-    } catch(e) { console.warn('Sheets header check failed:', e); }
+  function openWALeads() {
+    const body = document.getElementById('wa-leads-body');
+    const leads = window.waLeads || [];
+    if (leads.length === 0) {
+      body.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Nenhum lead pendente do WhatsApp.</p>';
+    } else {
+      body.innerHTML = leads.map(l => `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <div>
+              <div style="font-weight:700;font-size:13px;color:var(--text)">${l.nome || 'Sem nome'}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">📱 ${l.telefone || '—'} · ${l.area || '—'}</div>
+            </div>
+            <button onclick="doImportarLead('${l.id}')" style="background:var(--accent);border:none;color:white;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Importar</button>
+          </div>
+          <div style="font-size:11px;color:var(--text2);max-height:80px;overflow-y:auto;background:var(--bg);border-radius:6px;padding:8px">${(l.resumo||'Sem resumo').replace(/\n/g,'<br>')}</div>
+        </div>`).join('');
+    }
+    document.getElementById('modal-wa-leads').classList.add('open');
   }
+  window.openWALeads = openWALeads;
 
-  function leadToRow(lead) {
-    const docs = lead.docs || {};
-    const cltMap = { ativo: 'CLT ativo', desligado1ano: 'Desligado <1 ano', nao: 'Sem vínculo' };
-    return [
-      lead.id || '',
-      lead.name || '',
-      lead.cpf || '',
-      lead.phone || '',
-      lead.city || '',
-      lead.accidentDate || '',
-      lead.accidentType || '',
-      cltMap[lead.clt] || lead.clt || '',
-      lead.sequela || '',
-      lead.pericia || '',
-      lead.alta || '',
-      lead.residencia || '',
-      lead.area || appState?.currentArea || '',
-      lead.column || '',
-      lead.priority || '',
-      lead.notes || '',
-      docs['doc-rg'] ? 'Sim' : 'Não',
-      docs['doc-cpf-d'] ? 'Sim' : 'Não',
-      docs['doc-ctps'] ? 'Sim' : 'Não',
-      docs['doc-comp-res'] ? 'Sim' : 'Não',
-      docs['doc-bo'] ? 'Sim' : 'Não',
-      docs['doc-cat'] ? 'Sim' : 'Não',
-      docs['doc-laudo'] ? 'Sim' : 'Não',
-      docs['doc-alta-d'] ? 'Sim' : 'Não',
-      lead.createdAt ? new Date(lead.createdAt).toLocaleString('pt-BR') : '',
-      window.currentUser?.name || ''
-    ];
+  function doImportarLead(id) {
+    const lead = (window.waLeads||[]).find(l=>l.id===id);
+    if (!lead) return;
+    // Importa para o CRM como novo lead
+    const areaMap = { bancaria:'bancaria', previdenc:'previdenc', auxilio:'auxilio', consumidor:'consumidor', familia:'familia' };
+    const area = areaMap[lead.area] || 'auxilio';
+    const data = {
+      id: Date.now().toString(),
+      name: lead.nome || 'Cliente WhatsApp',
+      phone: lead.telefone || '',
+      city: '',
+      column: 'novo',
+      priority: 'mid',
+      notes: lead.resumo || '',
+      area: area,
+      docs: {},
+      createdAt: new Date().toISOString(),
+      origem: 'whatsapp'
+    };
+    // Salva na area correta
+    const state = JSON.parse(localStorage.getItem(window.STORAGE_KEY||'crm_asa_v3')||'null');
+    if (state && state.areas[area]) {
+      state.areas[area].leads.unshift(data);
+      localStorage.setItem(window.STORAGE_KEY||'crm_asa_v3', JSON.stringify(state));
+      if (appState) { appState = state; render(); }
+    }
+    // Marca como importado no Firestore
+    if (window.importarLeadWA) window.importarLeadWA(id);
+    openWALeads(); // Refresh modal
   }
-
-  async function syncLeadToSheets(lead) {
-    if (!SHEETS_WEBHOOK_URL || SHEETS_WEBHOOK_URL === 'COLE_A_URL_DO_APPS_SCRIPT_AQUI') return;
-    try {
-      await fetch(SHEETS_WEBHOOK_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'upsert', data: leadToRow(lead), id: lead.id })
-      });
-    } catch(e) { console.warn('Sheets sync failed:', e); }
-  }
-
-  window.syncLeadToSheets = syncLeadToSheets;
-
+  window.doImportarLead = doImportarLead;
 </script>
 </body>
 </html>
